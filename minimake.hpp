@@ -63,6 +63,14 @@ public:
         return m_size;
     }
 
+    /*
+     * Reset the task set.
+     */
+    void clear() {
+        std::fill(m_bitset.begin(), m_bitset.end(), false);
+        m_size = 0;
+    }
+
 private:
     const size_t m_capacity;
     size_t m_size;
@@ -376,7 +384,7 @@ private:
   // Returns true if the task is finished already, false othervice.
   bool try_build_task(const BuildGraph& build_graph,
                       size_t task_id,
-                      std::set<size_t>& waiting_tasks,
+                      TaskSet& waiting_tasks,
                       TaskSet& scheduled_tasks) {
     // If our task is done - return true.
     if (m_pipeline.task_is_finished(task_id)) {
@@ -391,7 +399,7 @@ private:
     // If our task is in waiting_tasks then we already analised it in one of
     // other branches. No need to check our dependencies again, we're
     // still waiting.
-    if (task_is_in_set(task_id, waiting_tasks)) {
+    if (waiting_tasks.contains(task_id)) {
       return false;
     }
 
@@ -417,9 +425,7 @@ private:
   }
 
   void build(const BuildGraph& build_graph, size_t task_id) {
-    // This could be optimized the same way, using bit set.
-    // Does it worth it?
-    std::set<size_t> waiting_tasks;
+    TaskSet waiting_tasks(build_graph.size());
     TaskSet scheduled_tasks(build_graph.size());
 
     do {
