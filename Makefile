@@ -1,5 +1,5 @@
 CXX=clang++
-CXXFLAGS=-lpthread -Werror -gdwarf-4
+CXXFLAGS=-lpthread -Werror -gdwarf-4 -O3
 
 all: run
 
