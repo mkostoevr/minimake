@@ -1,0 +1,202 @@
+  Functions,  Modules,   CPU_TIME(s) ▼
+"operator()(unsigned long const&, unsigned long const&) const",minimake,2.06
+_raw_spin_unlock_irqrestore,[kernel.kallsyms]_text,1.09
+_M_get_insert_unique_pos(unsigned long const&),minimake,0.55
+__gnu_cxx::__aligned_membuf<unsigned long>::_M_ptr() const,minimake,0.47
+__GI___pthread_mutex_lock,libpthread-2.31.so,0.41
+futex_wake,[kernel.kallsyms]_text,0.38
+std::_Identity<unsigned long>::operator()(unsigned long const&) const,minimake,0.37
+std::_Rb_tree_node<unsigned long>::_M_valptr() const,minimake,0.37
+__pthread_mutex_unlock_usercnt,libpthread-2.31.so,0.32
+_S_right(std::_Rb_tree_node_base*),minimake,0.26
+"std::_Rb_tree_insert_and_rebalance(bool,  std::_Rb_tree_node_base*, [, ...)",libstdc++.so.6.0.28,0.23
+_S_key(std::_Rb_tree_node<unsigned long> const*),minimake,0.21
+futex_wake_mark,[kernel.kallsyms]_text,0.20
+std::_Rb_tree_iterator<unsigned long>::_Rb_tree_iterator(std::_Rb_tree_node_base*),minimake,0.19
+__pthread_cond_signal,libpthread-2.31.so,0.18
+_int_malloc,libc-2.31.so,0.18
+"_Rb_tree_node_base const*, unsigned long const&) const",minimake,0.18
+__normal_iterator(unsigned long const* const&),minimake,0.17
+syscall_enter_from_user_mode,[kernel.kallsyms]_text,0.16
+"void __gnu_cxx::new_allocator<std::_Rb_tree_node<unsigned long> >::construc ...>(unsigned long*, unsigned long const&)",minimake,0.14
+futex_q_lock,[kernel.kallsyms]_text,0.14
+wake_up_q,[kernel.kallsyms]_text,0.13
+"_M_lower_bound(std::_Rb_tree_node<unsigned long>*, [, ...)",minimake,0.11
+"Builder::try_build_task(BuildGraph const&,  unsigned long, [, ...)",minimake,0.11
+__libc_malloc,libc-2.31.so,0.11
+std::_Rb_tree_const_iterator<unsigned long>::_Rb_tree_const_iterator(std::_Rb_tree_iterator<unsigned long> const&),minimake,0.11
+__list_add_valid,[kernel.kallsyms]_text,0.08
+std::_Function_base::_M_empty() const,minimake,0.08
+"std::pair<std::_Rb_tree_node_base*, std::_Rb_tree_node_base*>::pair<std::_R ...>(std::_Rb_tree_node<unsigned long>*&, std::_Rb_tree_node_base*&)",minimake,0.08
+"std::_Rb_tree_ ...>(std::_Rb_tree_node_base*,  std::_Rb_tree_node_base*, [, ...)",minimake,0.08
+std::_Rb_tree_const_iterator<unsigned long>::_Rb_tree_const_iterator(std::_Rb_tree_node_base const*),minimake,0.08
+__get_user_nocheck_4,[kernel.kallsyms]_text,0.07
+"std::enable_if<__and_<std::__not_<std::__is_tuple_like<std::_Any_data> >, s ...>(std::_Any_data&, std::_Any_data&)",minimake,0.07
+native_queued_spin_lock_slowpath,[kernel.kallsyms]_text,0.07
+std::mutex::unlock(),minimake,0.07
+__gnu_cxx::__aligned_membuf<unsigned long>::_M_addr() const,minimake,0.07
+cfree@GLIBC_2.2.5,libc-2.31.so,0.06
+"std::pair<std::_Rb_tree_iterator<unsigned long>, bool> std::_Rb_tree<unsign ...>(unsigned long const&)",minimake,0.06
+__gthread_mutex_unlock(pthread_mutex_t*),minimake,0.06
+_S_left(std::_Rb_tree_node_base*),minimake,0.06
+wake_q_add_safe,[kernel.kallsyms]_text,0.05
+futex_hash,[kernel.kallsyms]_text,0.05
+get_futex_key,[kernel.kallsyms]_text,0.05
+"std::pair<std::_Rb_tree_iterator<unsigned long>, bool>::pair<std::_Rb_tree_ ...>(std::_Rb_tree_iterator<unsigned long>&&, bool&&)",minimake,0.05
+std::_Function_base::~_Function_base(),minimake,0.05
+"bool __gnu_cxx::operator!=<unsigned long const*, std::vector<unsign ...>([, ...)",minimake,0.05
+_M_get_Node_allocator(),minimake,0.05
+std::function<void ()>::operator bool() const,minimake,0.05
+plist_add,[kernel.kallsyms]_text,0.05
+_S_right(std::_Rb_tree_node_base const*),minimake,0.05
+_int_free,libc-2.31.so,0.04
+__gthread_active_p(),minimake,0.04
+end() const,minimake,0.04
+Pipeline::WorkerSharedState::request_next_task(),minimake,0.04
+"Target& std::deque<Target, std::allocator<Target> >::emplace_back<Target>(Target&&)",minimake,0.04
+base() const,minimake,0.04
+std::lock_guard<std::mutex>::~lock_guard(),minimake,0.04
+"std::operator-(std::_Deque_iterator<Target, Target&, Target*> const&, [, ...)",minimake,0.04
+malloc_consolidate,libc-2.31.so,0.04
+__x64_sys_futex,[kernel.kallsyms]_text,0.04
+_M_begin(),minimake,0.04
+"std::operator==(std::_Rb_tree_iterator<unsigned long> const&, [, ...)",minimake,0.03
+std::mutex::lock(),minimake,0.03
+futex_wait,[kernel.kallsyms]_text,0.03
+__list_del_entry_valid,[kernel.kallsyms]_text,0.03
+_ZNSt14_Function_base13_Base_managerIZ1...St9_Any_dataRKS6_St18_Manager_operation,minimake,0.03
+std::function<void ()>::~function(),minimake,0.03
+Target::Target(Target const&),minimake,0.03
+_M_end(),minimake,0.03
+pthread_cond_wait,libpthread-2.31.so,0.03
+try_to_wake_up,[kernel.kallsyms]_text,0.03
+_ZNSt17_Function_handlerIFvvEZ16build_t...St9_Any_dataRKS6_St18_Manager_operation,minimake,0.03
+std::lock_guard<std::mutex>::lock_guard(std::mutex&),minimake,0.02
+std::_Function_base::_Function_base(),minimake,0.02
+Pipeline::worker_thread(Pipeline::WorkerSharedState&),minimake,0.02
+Target::~Target(),minimake,0.02
+_M_erase(std::_Rb_tree_node<unsigned long>*),minimake,0.02
+"std::operator!=(std::_Rb_tree_const_iterator<unsigned long> const&, [, ...)",minimake,0.02
+unlink_chunk.constprop.0,libc-2.31.so,0.02
+_S_key(std::_Rb_tree_node_base const*),minimake,0.02
+std::_Any_data::_M_access(),minimake,0.02
+__gthread_mutex_lock(pthread_mutex_t*),minimake,0.02
+"std::operator==(std::_Rb_tree_const_iterator<unsigned long> const&, [, ...)",minimake,0.02
+__gnu_cxx::__aligned_membuf<unsigned long>::_M_addr(),minimake,0.02
+_M_begin() const,minimake,0.02
+clear_page_erms,[kernel.kallsyms]_text,0.02
+insert(unsigned long const&),minimake,0.02
+__gnu_cxx::__aligned_membuf<unsigned long>::_M_ptr(),minimake,0.02
+"std::allocator_traits<std::allocator<unsigned long> >::deallocate(std::allocator<unsigned long>&, unsigned long*, unsigned long)",minimake,0.02
+_raw_spin_lock,[kernel.kallsyms]_text,0.02
+"unsigned long const& std::min<unsigned long>(unsigned long const&, unsigned long const&)",minimake,0.02
+"std::_Rb_tree_node<unsigned long>* std::_Rb_tree<unsigned long, unsigned lo ...>(unsigned long const&)",minimake,0.02
+find(unsigned long const&),minimake,0.02
+preempt_count_add,[kernel.kallsyms]_text,0.02
+futex_wait_setup,[kernel.kallsyms]_text,0.02
+_ZNSt14_Function_base13_Base_managerIZ1...t9_Any_dataSt17integral_constantIbLb1EE,minimake,0.02
+size() const,minimake,0.02
+std::__deque_buf_size(unsigned long),minimake,0.02
+"std::pair<std::_Rb_tree_const_iterator<unsigned long>, bool>::pair<std::_Rb ...>(std::_Rb_tree_iterator<unsigned long>&, bool&)",minimake,0.02
+allocator<unsigned long> >&) const,minimake,0.02
+find(unsigned long const&) const,minimake,0.02
+"std::vector<unsigned long, std::allocator<unsigned long> >::begin() const",minimake,0.02
+__lll_lock_wait,libpthread-2.31.so,0.02
+_ZNKSt9_Any_data9_M_accessIZ16build_test_graphR10BuildGraphiRmE3$_0EERKT_v,minimake,0.01
+Pipeline::WorkerSharedState::mark_task_as_finished(unsigned long),minimake,0.01
+"void std::_Rb_tree<unsigned long, unsigned long, std::_Identity<unsigned lo ...>(std::_Rb_tree_node<unsigned long>*, unsigned long const&)",minimake,0.01
+equal_range(unsigned long const&),minimake,0.01
+end(),minimake,0.01
+futex_q_unlock,[kernel.kallsyms]_text,0.01
+perf_iterate_ctx,[kernel.kallsyms]_text,0.01
+__schedule,[kernel.kallsyms]_text,0.01
+_ZNSt9_Any_data9_M_accessIZ16build_test_graphR10BuildGraphiRmE3$_0EERT_v,minimake,0.01
+"std::vector<unsigned long, std::allocator<unsigned long> >::vector(std::vector<unsigned long, std::allocator<unsigned long> > const&)",minimake,0.01
+"unsigned long const* std::__niter_base<unsigned long const*, std::v ...>([, ...)",minimake,0.01
+_M_get_node(),minimake,0.01
+end() const,minimake,0.01
+"std::enable_if<std::__is_bitwise_relocatable<unsigned long>::value, unsigne ...>(unsigned long*, unsigned long*, unsigned long*, std::allocator<unsigned long>&)",minimake,0.01
+std::_Any_data::_M_access() const,minimake,0.01
+"std::enable_if<__and_<std::__not_<std::__is_tuple_like<bool (*)(std ...>([, ...)",minimake,0.01
+"std::_Deque_iterator<Target, Target&, Target*>::operator*() const",minimake,0.01
+"std::_Deque_iterator<Target, Target&, Target*>::_Deque_iterator(std::_Deque_iterator<Target, Target&, Target*> const&)",minimake,0.01
+"allocate(std::allocator<std::_Rb_tree_node<unsigned long> >&, unsigned long)",minimake,0.01
+"__gnu_cxx::new_allocator<std::_Rb_tree_node<unsigned long> >::allocate(unsigned long, void const*)",minimake,0.01
+operator++(),minimake,0.01
+Pipeline::WorkerSharedState::task_is_finished(unsigned long),minimake,0.01
+"std::_Deque_iterator<Target, Target&, Target*>::operator--()",minimake,0.01
+"unsigned long* std::copy<__gnu_cxx::__normal_iterator<unsigned long ...>([, ...)",minimake,0.01
+do_futex,[kernel.kallsyms]_text,0.01
+"std::vector<unsigned long, std::allocator<unsigned long> >::end() const",minimake,0.01
+"std::pair<std::_Rb_tree_it ...>(std::_Rb_tree_iterator<unsigned long>&&, [, ...)",minimake,0.01
+operator new(unsigned long),libstdc++.so.6.0.28,0.01
+std::_Rb_tree_decrement(std::_Rb_tree_node_base*),libstdc++.so.6.0.28,0.01
+__futex_unqueue,[kernel.kallsyms]_text,0.01
+_ZNSt14_Function_base13_Base_managerIZ1...RmE3$_0E14_M_get_pointerERKSt9_Any_data,minimake,0.01
+std::allocator<unsigned long>::~allocator(),minimake,0.01
+_Vector_impl_data(),minimake,0.01
+"std::vector<unsigned long, std::allocator<unsigned long> >::size() const",minimake,0.01
+"unsigned long* std::__copy_move_a<false, __gnu_cxx::__normal_iterat ...>([, ...)",minimake,0.01
+__normal_iterator(unsigned long* const&),minimake,0.01
+get_page_from_freelist,[kernel.kallsyms]_text,0.01
+std::unique_lock<std::mutex>::unique_lock(std::mutex&),minimake,0.01
+_M_put_node(std::_Rb_tree_node<unsigned long>*),minimake,0.01
+_M_destroy_node(std::_Rb_tree_node<unsigned long>*),minimake,0.01
+"std::_Vector_base<unsigned long, std::allocator<unsigned long> >::_M_allocate(unsigned long)",minimake,0.01
+__futex_queue,[kernel.kallsyms]_text,0.01
+find_vma,[kernel.kallsyms]_text,0.01
+schedule,[kernel.kallsyms]_text,0.01
+std::function<void ()>::function(std::function<void ()> const&),minimake,0.01
+"std::queue<Target, std::deque<Target, std::allocator<Target> > >::size() const",minimake,0.01
+_M_drop_node(std::_Rb_tree_node<unsigned long>*),minimake,0.01
+"void std::allocator_traits<std::allocator<std::_Rb_tree_node<unsigned long> ...>(std::allocator<std::_Rb_tree_node<unsigned long> >&, unsigned long*)",minimake,0.01
+_M_get_Tp_allocator() const,minimake,0.01
+"std::_Vector_base<unsigned long, std::allocator<unsigned long> >::~_Vector_base()",minimake,0.01
+_M_create_storage(unsigned long),minimake,0.01
+"unsigned long* std::__copy_move<false, true, std::random_access_iterator_ta ...>(unsigned long const*, unsigned long const*, unsigned long*)",minimake,0.01
+"void std::vector<unsigned long, std::allocator<unsigned long> >::_M ...>([, ...)",minimake,0.01
+do_user_addr_fault,[kernel.kallsyms]_text,0.01
+preempt_count_sub,[kernel.kallsyms]_text,0.01
+futex_wait_queue,[kernel.kallsyms]_text,0.01
+_ZNSt8functionIFvvEEC2IZ16build_test_graphR10BuildGraphiRmE3$_0vvEET_,minimake,0.01
+"std::enable_if<__and_<std::__not_<std::__is_tuple_like<void (*)(std::_Any_d ...>(void (*&)(std::_Any_data const&), void (*&)(std::_Any_data const&))",minimake,0.01
+"std::deque<Target, std::allocator<Target> >::size() const",minimake,0.01
+operator()<unsigned long const&>(unsigned long const&) const,minimake,0.01
+"(std::allocator<std::_Rb_tree_node<unsigned long> >&,  unsigned long*, [, ...)",minimake,0.01
+find(unsigned long const&) const,minimake,0.01
+_M_erase_aux(std::_Rb_tree_const_iterator<unsigned long>),minimake,0.01
+unsigned long* std::__niter_base<unsigned long*>(unsigned long*),minimake,0.01
+"std::_Vector_base<unsigned long, std::allocator<unsigned long> >::_M_deallocate(unsigned long*, unsigned long)",minimake,0.01
+__gnu_cxx::new_allocator<unsigned long>::max_size() const,minimake,0.01
+change_protection,[kernel.kallsyms]_text,0.01
+"std::vector<unsigned long, std::allocator<unsigned long> >::~vector()",minimake,0.01
+size() const,minimake,0.01
+"_Vector_impl_data([, ...)",minimake,0.01
+"std::pair<std::__strip_reference_wrapper<std::decay<Target&>::type>::__type ...>(Target&, bool&&)",minimake,0.01
+std::unique_lock<std::mutex>::lock(),minimake,0.01
+"Builder::task_is_in_set(unsigned long, [, ...)",minimake,0.01
+"std::_Vector_base<unsigned long, std::allocator<unsigned long> >::_Vector_base(unsigned long, std::allocator<unsigned long> const&)",minimake,0.01
+_M_get_Tp_allocator(),minimake,0.01
+~_Vector_impl(),minimake,0.01
+"__gnu_cxx::new_allocator<unsigned long>::deallocate(unsigned long*, unsigned long)",minimake,0.01
+"void std::_Destroy<unsigned long*, unsigned long>(unsigned long*, unsigned long*, std::allocator<unsigned long>&)",minimake,0.01
+"void std::_Destroy<unsigned long*>(unsigned long*, unsigned long*)",minimake,0.01
+"std::vector<unsigned long, std::allocator<unsigned long> >::end()",minimake,0.01
+"void __gnu_cxx::new_allocator<unsigned long>::construct<unsigned long, unsi ...>(unsigned long*, unsigned long&&)",minimake,0.01
+_ZNSt17_Function_handlerIFvvEZ16build_t...GraphiRmE3$_0E9_M_invokeERKSt9_Any_data,minimake,0.01
+"std::deque<Target, std::allocator<Target> >::pop_front()",minimake,0.01
+Target::Target(Target&&),minimake,0.01
+std::_Rb_tree_node<unsigned long>::_M_valptr(),minimake,0.01
+operator*() const,minimake,0.01
+size() const,minimake,0.01
+find(unsigned long const&),minimake,0.01
+"Pipeline::schedule_task(unsigned long, std::function<void ()>)",minimake,0.01
+operator[](unsigned long) const,minimake,0.01
+std::allocator<unsigned long>::allocator(std::allocator<unsigned long> const&),minimake,0.01
+_Vector_impl(std::allocator<unsigned long> const&),minimake,0.01
+"std::vector<unsigned long, std::allocator<unsigned long> >::max_size() const",minimake,0.01
+__memcpy_avx_unaligned_erms,libc-2.31.so,0.01
+plist_del,[kernel.kallsyms]_text,0.00
+check_preemption_disabled,[kernel.kallsyms]_text,0.00
+_raw_spin_unlock,[kernel.kallsyms]_text,0.00
+
