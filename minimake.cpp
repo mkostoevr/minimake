@@ -45,8 +45,6 @@ int main() {
   setvbuf(stdout, NULL, _IONBF, 0);
 
   BuildGraph build_graph;
-  Builder builder(get_cpu_count());
-
   const size_t layers = TEST_LAYERS;
   size_t task_count = 0;
 
@@ -55,8 +53,10 @@ int main() {
   //size_t target_id = build_bad_graph(build_graph, layers, task_count);
   std::cout << "Done: " << task_count << ".\n";
 
+  Builder builder(get_cpu_count(), build_graph);
+
   auto start = std::chrono::system_clock::now();
-  builder.execute(build_graph, target_id);
+  builder.execute(target_id);
   auto finish = std::chrono::system_clock::now();
 
   auto tstart = std::chrono::time_point_cast<std::chrono::milliseconds>(start);

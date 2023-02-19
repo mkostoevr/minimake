@@ -9,6 +9,66 @@
 #include <mutex>
 #include <set>
 
+class TaskSet {
+public:
+    explicit TaskSet(size_t max_task_count)
+        : m_capacity(max_task_count)
+        , m_bitset(max_task_count, 0)
+        , m_size(0) {}
+
+    /*
+     * Adds a task to the set.
+     *
+     * @return true if task is added successfully,
+     *         false if it already exists.
+     */
+    bool insert(size_t task_id) {
+        assert(task_id < m_capacity);
+
+        if (m_bitset[task_id]) {
+            return false;
+        }
+
+        m_bitset[task_id] = true;
+        m_size++;
+        return true;
+    }
+
+    /*
+     *  Remove a task from the set.
+     *
+     *  @warning If the task does not exist in
+     *           the set, behavior is undefined.
+     */
+    void erase(size_t task_id) {
+        assert(m_bitset[task_id]);
+
+        m_bitset[task_id] = false;
+        m_size--;
+    }
+
+    /*
+     * Check whether the task exists in the set.
+     */
+    bool contains(size_t task_id) {
+        assert(task_id < m_capacity);
+
+        return m_bitset[task_id];
+    }
+
+    /*
+     * Count existing tasks in the set.
+     */
+    size_t size() {
+        return m_size;
+    }
+
+private:
+    const size_t m_capacity;
+    size_t m_size;
+    std::vector<bool> m_bitset;
+};
+
 struct Target {
   size_t id;
   std::function<void()> task;
@@ -35,6 +95,10 @@ public:
   const std::vector<size_t>& get_task_deps(size_t task_id) const {
     assert(m_task_deps.size() > task_id);
     return m_task_deps[task_id];
+  }
+
+  size_t size() const noexcept {
+    return m_tasks.size();
   }
 };
 
@@ -71,6 +135,11 @@ public:
     std::lock_guard lock(m_lock);
     return ThreadUnsafeBuildGraph::get_task_deps(task_id);
   }
+
+  size_t size() const noexcept {
+    std::lock_guard lock(m_lock);
+    return ThreadUnsafeBuildGraph::size();
+  }
 };
 
 // I have never implemented thread pools myself so it's probably suboptimal
@@ -86,9 +155,12 @@ private:
 
     std::mutex finished_tasks_modification;
     std::condition_variable task_finished;
-    std::set<size_t> finished_tasks;
+    TaskSet finished_tasks;
 
     bool pending_finish_request = false;
+
+    explicit WorkerSharedState(size_t max_task_count)
+        : finished_tasks(max_task_count) {}
 
     std::pair<Target, bool> request_next_task() {
       std::unique_lock lock(task_queue_modification);
@@ -136,7 +208,7 @@ private:
 
     bool task_is_finished(size_t task_id) {
       std::lock_guard lock(finished_tasks_modification);
-      return finished_tasks.find(task_id) != finished_tasks.end();
+      return finished_tasks.contains(task_id);
     }
 
     // Wait for "One task is finished since you checked last time, maybe you can
@@ -199,7 +271,8 @@ private:
   }
 
 public:
-  Pipeline(size_t num_threads) {
+  Pipeline(size_t num_threads, size_t max_task_count)
+    : m_workers_shared_state(max_task_count) {
     for (size_t i = 0; i < num_threads; i++) {
       m_workers.emplace_back(worker_thread, std::ref(m_workers_shared_state));
     }
@@ -361,19 +434,22 @@ private:
   }
 
 public:
-  explicit Builder(size_t num_threads): m_pipeline(num_threads) {}
+  explicit Builder(size_t num_threads, const BuildGraph& build_graph)
+      : m_pipeline(num_threads, build_graph.size())
+      , m_build_graph(build_graph) {}
 
-  void execute(const BuildGraph& build_graph, size_t task_id) {
+  void execute(size_t task_id) {
     std::cout << "Cyclic dependency check... ";
-    check_no_cyclic_deps(build_graph, task_id);
+    check_no_cyclic_deps(m_build_graph, task_id);
     std::cout << "Done.\n";
 
     std::cout << "Build... ";
-    build(build_graph, task_id);
+    build(m_build_graph, task_id);
     std::cout << "Done.\n";
   }
 
 private:
   Pipeline m_pipeline;
+  const BuildGraph& m_build_graph;
 };
 
