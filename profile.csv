@@ -1,90 +1,91 @@
   Functions,  Modules,   CPU_TIME(s) ▼
-native_queued_spin_lock_slowpath,[kernel.kallsyms]_text,1.94
-_raw_spin_unlock_irqrestore,[kernel.kallsyms]_text,1.69
-__GI___pthread_mutex_lock,libpthread-2.31.so,0.61
-__pthread_mutex_unlock_usercnt,libpthread-2.31.so,0.59
-futex_wake,[kernel.kallsyms]_text,0.39
-__get_user_nocheck_4,[kernel.kallsyms]_text,0.37
-pthread_cond_wait,libpthread-2.31.so,0.34
-futex_q_lock,[kernel.kallsyms]_text,0.33
-futex_wake_mark,[kernel.kallsyms]_text,0.26
-wake_up_q,[kernel.kallsyms]_text,0.23
-syscall_enter_from_user_mode,[kernel.kallsyms]_text,0.22
-plist_add,[kernel.kallsyms]_text,0.22
-__pthread_cond_signal,libpthread-2.31.so,0.20
-Pipeline::WorkerSharedState::request_next_task(),minimake,0.18
-"Builder::try_build_task(BuildGraph const&, unsigned long, TaskSet&, TaskSet&)",minimake,0.15
-__lll_lock_wait,libpthread-2.31.so,0.13
-Pipeline::WorkerSharedState::mark_task_as_finished(unsigned long),minimake,0.13
-__list_add_valid,[kernel.kallsyms]_text,0.12
-futex_hash,[kernel.kallsyms]_text,0.09
-__list_del_entry_valid,[kernel.kallsyms]_text,0.09
-wake_q_add_safe,[kernel.kallsyms]_text,0.09
-futex_q_unlock,[kernel.kallsyms]_text,0.08
-__x64_sys_futex,[kernel.kallsyms]_text,0.08
-__futex_unqueue,[kernel.kallsyms]_text,0.08
-_raw_spin_lock,[kernel.kallsyms]_text,0.07
-BuildGraph::get_task(unsigned long) const,minimake,0.06
-"Pipeline::WorkerSharedState::add_task(unsigned long, std::function<void ()>)",minimake,0.06
+_raw_spin_unlock_irqrestore,[kernel.kallsyms]_text,0.82
+futex_q_lock,[kernel.kallsyms]_text,0.36
+futex_wake,[kernel.kallsyms]_text,0.35
+native_queued_spin_lock_slowpath,[kernel.kallsyms]_text,0.21
+wake_up_q,[kernel.kallsyms]_text,0.20
+"Builder::try_build_task(BuildGraph const&, unsigned long, TaskSet&, TaskSet&)",minimake,0.17
+__GI___pthread_mutex_lock,libpthread-2.31.so,0.16
+syscall_enter_from_user_mode,[kernel.kallsyms]_text,0.15
+__pthread_cond_signal,libpthread-2.31.so,0.14
+futex_wake_mark,[kernel.kallsyms]_text,0.14
+__pthread_mutex_unlock_usercnt,libpthread-2.31.so,0.14
+__get_user_nocheck_4,[kernel.kallsyms]_text,0.14
+"Pipeline::schedule_task(unsigned long, std::function<void ()>)",minimake,0.09
+__schedule,[kernel.kallsyms]_text,0.07
+try_to_wake_up,[kernel.kallsyms]_text,0.06
+futex_hash,[kernel.kallsyms]_text,0.06
+plist_add,[kernel.kallsyms]_text,0.06
 futex_wait,[kernel.kallsyms]_text,0.05
-__schedule,[kernel.kallsyms]_text,0.05
-try_to_wake_up,[kernel.kallsyms]_text,0.04
-get_futex_key,[kernel.kallsyms]_text,0.04
-futex_wait_setup,[kernel.kallsyms]_text,0.04
-preempt_count_add,[kernel.kallsyms]_text,0.04
-Pipeline::worker_thread(Pipeline::WorkerSharedState&),minimake,0.03
-_raw_spin_unlock,[kernel.kallsyms]_text,0.03
-_int_free,libc-2.31.so,0.03
+BuildGraph::get_task(unsigned long) const,minimake,0.04
+"Pipeline::WorkerState::add_task(unsigned long, std::function<void ()>)",minimake,0.04
+Pipeline::WorkerSharedState::mark_task_as_finished(unsigned long),minimake,0.04
+pthread_cond_wait,libpthread-2.31.so,0.04
+futex_wait_setup,[kernel.kallsyms]_text,0.03
+schedule,[kernel.kallsyms]_text,0.03
+__futex_queue,[kernel.kallsyms]_text,0.03
+preempt_count_add,[kernel.kallsyms]_text,0.03
+__x64_sys_futex,[kernel.kallsyms]_text,0.03
+"Pipeline::worker_thread(std::shared_ptr<Pipeline::WorkerState>, [, ...)",minimake,0.03
 futex_wait_queue,[kernel.kallsyms]_text,0.02
-__futex_queue,[kernel.kallsyms]_text,0.02
-__libc_malloc,libc-2.31.so,0.02
+__lll_lock_wait,libpthread-2.31.so,0.02
+_int_free,libc-2.31.so,0.02
+wake_q_add_safe,[kernel.kallsyms]_text,0.02
+__list_add_valid,[kernel.kallsyms]_text,0.02
 check_preemption_disabled,[kernel.kallsyms]_text,0.02
-finish_task_switch.isra.0,[kernel.kallsyms]_text,0.02
-preempt_count_sub,[kernel.kallsyms]_text,0.01
-do_futex,[kernel.kallsyms]_text,0.01
-syscall_exit_to_user_mode_prepare,[kernel.kallsyms]_text,0.01
-clear_page_erms,[kernel.kallsyms]_text,0.01
-_int_malloc,libc-2.31.so,0.01
+Pipeline::WorkerState::get_next_task(),minimake,0.02
+do_futex,[kernel.kallsyms]_text,0.02
+get_futex_key,[kernel.kallsyms]_text,0.02
+futex_q_unlock,[kernel.kallsyms]_text,0.02
+_raw_spin_lock,[kernel.kallsyms]_text,0.02
+_int_malloc,libc-2.31.so,0.02
+__libc_malloc,libc-2.31.so,0.01
+__futex_unqueue,[kernel.kallsyms]_text,0.01
 cfree@GLIBC_2.2.5,libc-2.31.so,0.01
-"Builder::schedule_task(unsigned long, std::function<void ()>)",minimake,0.01
-futex_get_value_locked,[kernel.kallsyms]_text,0.01
-_raw_spin_lock_irqsave,[kernel.kallsyms]_text,0.01
-"ThreadUnsafeBuildGraph::add_task(std::function<void ()>, [, ...)",minimake,0.01
-"check_no_cyclic_deps4(BuildGraph const&, unsigned long, TaskSet&, TaskSet&) const",minimake,0.01
-do_syscall_64,[kernel.kallsyms]_text,0.01
-schedule,[kernel.kallsyms]_text,0.01
-unmap_page_range,[kernel.kallsyms]_text,0.01
-debug_smp_processor_id,[kernel.kallsyms]_text,0.01
-__pthread_mutex_cond_lock,libpthread-2.31.so,0.01
+preempt_count_sub,[kernel.kallsyms]_text,0.01
 std::condition_variable::notify_one(),libstdc++.so.6.0.28,0.01
-do_user_addr_fault,[kernel.kallsyms]_text,0.01
-in_lock_functions,[kernel.kallsyms]_text,0.01
-futex_setup_timer,[kernel.kallsyms]_text,0.01
-plist_del,[kernel.kallsyms]_text,0.01
-"build_test_graph(BuildGraph&, int, unsigned long&)",minimake,0.01
-"Pipeline::schedule_task(unsigned long, std::function<void ()>)",minimake,0.00
-__pthread_cleanup_push,libpthread-2.31.so,0.00
-__pthread_enable_asynccancel,libpthread-2.31.so,0.00
-free_unref_page_list,[kernel.kallsyms]_text,0.00
-syscall_exit_to_user_mode,[kernel.kallsyms]_text,0.00
-"void std::deque<Target, std::allocator<Target> >::_M_push_back_aux<Target>(Target&&)",minimake,0.00
-[PLT] pthread_mutex_unlock,minimake,0.00
-main,minimake,0.00
-_ZNSt17_Function_handlerIFvvEZ16build_t...GraphiRmE3$_0E9_M_invokeERKSt9_Any_data,minimake,0.00
-"BuildGraph::add_task(std::function<void ()>, [, ...)",minimake,0.00
-"void std::vector<std::function<void ()>, std::allocator<std::functi ...>([, ...)",minimake,0.00
+_raw_spin_unlock,[kernel.kallsyms]_text,0.01
+"check_no_cyclic_deps4(BuildGraph const&, unsigned long, TaskSet&, TaskSet&) const",minimake,0.01
+finish_task_switch.isra.0,[kernel.kallsyms]_text,0.01
+"BuildGraph::add_task(std::function<void ()>, [, ...)",minimake,0.01
+clear_page_erms,[kernel.kallsyms]_text,0.01
+__pthread_enable_asynccancel,libpthread-2.31.so,0.01
+operator new(unsigned long),libstdc++.so.6.0.28,0.01
+_raw_spin_lock_irqsave,[kernel.kallsyms]_text,0.01
+syscall_exit_to_user_mode_prepare,[kernel.kallsyms]_text,0.00
+__list_del_entry_valid,[kernel.kallsyms]_text,0.00
+do_syscall_64,[kernel.kallsyms]_text,0.00
+"build_test_graph(BuildGraph&, int, unsigned long&)",minimake,0.00
+"ThreadUnsafeBuildGraph::add_task(std::function<void ()>, [, ...)",minimake,0.00
+do_user_addr_fault,[kernel.kallsyms]_text,0.00
+in_lock_functions,[kernel.kallsyms]_text,0.00
+futex_get_value_locked,[kernel.kallsyms]_text,0.00
 "void std::vector<std::vector<unsigned long, std::allocator<unsigned ...>([, ...)",minimake,0.00
-[PLT] malloc,libstdc++.so.6.0.28,0.00
-__memcpy_avx_unaligned_erms,libc-2.31.so,0.00
+"Builder::schedule_task(unsigned long, std::function<void ()>)",minimake,0.00
 flush_tlb_mm_range,[kernel.kallsyms]_text,0.00
-down_read_trylock,[kernel.kallsyms]_text,0.00
-__rcu_read_unlock,[kernel.kallsyms]_text,0.00
-futex_unqueue,[kernel.kallsyms]_text,0.00
-smp_call_function_many_cond,[kernel.kallsyms]_text,0.00
-__tlb_remove_page_size,[kernel.kallsyms]_text,0.00
-page_add_new_anon_rmap,[kernel.kallsyms]_text,0.00
+futex_setup_timer,[kernel.kallsyms]_text,0.00
 get_page_from_freelist,[kernel.kallsyms]_text,0.00
-_find_next_bit,[kernel.kallsyms]_text,0.00
-__x86_indirect_thunk_array,[kernel.kallsyms]_text,0.00
+main,minimake,0.00
+"void std::deque<Target, std::allocator<Target> >::_M_push_back_aux<Target>(Target&&)",minimake,0.00
+__GI___pthread_mutex_unlock,libpthread-2.31.so,0.00
+std::condition_variable::wait(std::unique_lock<std::mutex>&),libstdc++.so.6.0.28,0.00
+__memcpy_avx_unaligned_erms,libc-2.31.so,0.00
+default_send_IPI_mask_sequence_phys,[kernel.kallsyms]_text,0.00
+mod_lruvec_page_state.constprop.0,[kernel.kallsyms]_text,0.00
+futex_unqueue,[kernel.kallsyms]_text,0.00
+count_memcg_events.constprop.0,[kernel.kallsyms]_text,0.00
+exit_mmap,[kernel.kallsyms]_text,0.00
+free_unref_page,[kernel.kallsyms]_text,0.00
+free_unref_page_list,[kernel.kallsyms]_text,0.00
+alloc_pages_vma,[kernel.kallsyms]_text,0.00
+plist_del,[kernel.kallsyms]_text,0.00
+syscall_exit_to_user_mode,[kernel.kallsyms]_text,0.00
+debug_smp_processor_id,[kernel.kallsyms]_text,0.00
+__do_softirq,[kernel.kallsyms]_text,0.00
+[PLT] std::condition_variable::notify_one(),minimake,0.00
+[PLT] pthread_mutex_lock,minimake,0.00
 _ZNSt17_Function_handlerIFvvEZ16build_t...St9_Any_dataRKS6_St18_Manager_operation,minimake,0.00
+"void std::vector<std::function<void ()>, std::allocator<std::functi ...>([, ...)",minimake,0.00
+_dl_runtime_resolve_xsavec,ld-2.31.so,0.00
+__condvar_dec_grefs,libpthread-2.31.so,0.00
 [PLT] pthread_cond_wait,libstdc++.so.6.0.28,0.00

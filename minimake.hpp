@@ -155,21 +155,15 @@ public:
 // But I've done the best I could :)
 class Pipeline {
 private:
-  struct WorkerSharedState {
+  // TODO: Align to cache line size to prevent false sharing.
+  struct WorkerState {
     std::mutex task_queue_modification;
     std::condition_variable new_task_or_finish_request;
     std::queue<Target> task_queue;
 
-    std::mutex finished_tasks_modification;
-    std::condition_variable task_finished;
-    TaskSet finished_tasks;
-
     bool pending_finish_request = false;
 
-    explicit WorkerSharedState(size_t max_task_count)
-        : finished_tasks(max_task_count) {}
-
-    std::pair<Target, bool> request_next_task() {
+    std::pair<Target, bool> get_next_task() {
       std::unique_lock lock(task_queue_modification);
 
       for (;;) {
@@ -179,7 +173,7 @@ private:
           // Return to the worker the task to execute.
           return std::make_pair(task, false);
         }
-        
+
         if (pending_finish_request) {
           // Return to the worker a finish request.
           return std::make_pair((Target){}, true);
@@ -206,6 +200,15 @@ private:
       pending_finish_request = true;
       new_task_or_finish_request.notify_all();
     }
+  };
+
+  struct WorkerSharedState {
+    std::mutex finished_tasks_modification;
+    std::condition_variable task_finished;
+    TaskSet finished_tasks;
+
+    explicit WorkerSharedState(size_t max_task_count)
+        : finished_tasks(max_task_count) {}
 
     void mark_task_as_finished(size_t task_id) {
       std::lock_guard lock(finished_tasks_modification);
@@ -266,9 +269,10 @@ private:
   };
 
 private:
-  static void worker_thread(WorkerSharedState& shared_state) {
+  static void worker_thread(std::shared_ptr<WorkerState> state,
+                            WorkerSharedState& shared_state) {
     for (;;) {
-      auto [task, finish_request] = shared_state.request_next_task();
+      auto [task, finish_request] = state->get_next_task();
       if (finish_request) {
         return;
       }
@@ -281,12 +285,21 @@ public:
   Pipeline(size_t num_threads, size_t max_task_count)
     : m_workers_shared_state(max_task_count) {
     for (size_t i = 0; i < num_threads; i++) {
-      m_workers.emplace_back(worker_thread, std::ref(m_workers_shared_state));
+      auto worker_state = m_worker_states.emplace_back(new WorkerState());
+      m_workers.emplace_back(worker_thread,
+                             worker_state,
+                             std::ref(m_workers_shared_state));
     }
   }
 
-  void schedule_task(size_t id, std::function<void()> task) {
-    m_workers_shared_state.add_task(id, task);
+  void schedule_task(size_t task_id, std::function<void()> task) {
+    // TODO: Scheduling.
+    assert(m_next_worker < m_worker_states.size());
+
+    m_worker_states[m_next_worker++]->add_task(task_id, task);
+    if (m_next_worker == m_worker_states.size()) {
+      m_next_worker = 0;
+    }
   }
 
   bool task_is_finished(size_t task_id) {
@@ -299,7 +312,9 @@ public:
 
   void finish() {
     // Signal to workers it's time to stop.
-    m_workers_shared_state.finish();
+    for (std::shared_ptr<WorkerState> worker_state: m_worker_states) {
+      worker_state->finish();
+    }
 
     // Wait for workers to stop.
     for (std::thread& worker: m_workers) {
@@ -309,7 +324,9 @@ public:
 
 private:
   std::vector<std::thread> m_workers;
+  std::vector<std::shared_ptr<WorkerState>> m_worker_states;
   WorkerSharedState m_workers_shared_state;
+  size_t m_next_worker = 0;
 };
 
 class Builder {
