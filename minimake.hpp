@@ -377,14 +377,14 @@ private:
   bool try_build_task(const BuildGraph& build_graph,
                       size_t task_id,
                       std::set<size_t>& waiting_tasks,
-                      std::set<size_t>& scheduled_tasks) {
+                      TaskSet& scheduled_tasks) {
     // If our task is done - return true.
     if (m_pipeline.task_is_finished(task_id)) {
       return true;
     }
 
     // If the task is shcheduled already, skip it. It's going to be built later.
-    if (task_is_in_set(task_id, scheduled_tasks)) {
+    if (scheduled_tasks.contains(task_id)) {
       return false;
     }
 
@@ -420,7 +420,7 @@ private:
     // This could be optimized the same way, using bit set.
     // Does it worth it?
     std::set<size_t> waiting_tasks;
-    std::set<size_t> scheduled_tasks;
+    TaskSet scheduled_tasks(build_graph.size());
 
     do {
       m_pipeline.wait_till_can_try_build_again();
