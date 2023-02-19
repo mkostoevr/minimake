@@ -7,7 +7,6 @@
 #include <thread>
 #include <queue>
 #include <mutex>
-#include <set>
 
 class TaskSet {
 public:
@@ -315,15 +314,11 @@ private:
 
 class Builder {
 private:
-  static bool task_is_in_set(size_t task_id, const std::set<size_t>& the_set) {
-    return the_set.find(task_id) != the_set.end();
-  }
-
   void check_no_cyclic_deps4(const BuildGraph& build_graph,
                              size_t task_id,
                              TaskSet& current_branch_tasks,
-                             std::set<size_t>& analised_tasks) const {
-    if (task_is_in_set(task_id, analised_tasks)) {
+                             TaskSet& analised_tasks) const {
+    if (analised_tasks.contains(task_id)) {
       // This task was already analised in another dependency graph branch.
       //
       // Now we know that the dependency subgraph starting from this task_id
@@ -366,10 +361,8 @@ private:
   }
 
   void check_no_cyclic_deps(const BuildGraph& build_graph, size_t task_id) const {
-    // This could be optimized using something like a resizeable bit set
-    // instead of a sorted tree. But I ran out of time :(
     TaskSet current_branch_tasks(build_graph.size());
-    std::set<size_t> analised_tasks;
+    TaskSet analised_tasks(build_graph.size());
 
     check_no_cyclic_deps4(build_graph,
                           task_id,
