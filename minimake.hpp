@@ -321,7 +321,7 @@ private:
 
   void check_no_cyclic_deps4(const BuildGraph& build_graph,
                              size_t task_id,
-                             std::set<size_t>& current_branch_tasks,
+                             TaskSet& current_branch_tasks,
                              std::set<size_t>& analised_tasks) const {
     if (task_is_in_set(task_id, analised_tasks)) {
       // This task was already analised in another dependency graph branch.
@@ -338,7 +338,7 @@ private:
     }
 
     // Put ourselves into current branch task set.
-    auto [it, success] = current_branch_tasks.insert(task_id);
+    bool success = current_branch_tasks.insert(task_id);
 
     // If we was in the branch already, that means we have a cyclic dependency,
     // and it's not a branch at all, it's a circuit :)
@@ -368,7 +368,7 @@ private:
   void check_no_cyclic_deps(const BuildGraph& build_graph, size_t task_id) const {
     // This could be optimized using something like a resizeable bit set
     // instead of a sorted tree. But I ran out of time :(
-    std::set<size_t> current_branch_tasks;
+    TaskSet current_branch_tasks(build_graph.size());
     std::set<size_t> analised_tasks;
 
     check_no_cyclic_deps4(build_graph,
