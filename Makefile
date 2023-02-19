@@ -3,8 +3,8 @@ CXXFLAGS=-lpthread -Werror -gdwarf-4
 
 all: run
 
-minimake: test.cpp task.hpp
-	$(CXX) $(CXXFLAGS) test.cpp -o test
+minimake: minimake.cpp minimake.hpp
+	$(CXX) $(CXXFLAGS) minimake.cpp -o minimake
 
-run: test
-	@./test
+run: minimake
+	@./minimake

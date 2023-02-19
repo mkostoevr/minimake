@@ -1,9 +1,9 @@
-#include "task.hpp"
+#include "minimake.hpp"
 
 #include <unistd.h>
 #include <chrono>
 
-#define TEST_LAYERS 4
+#define TEST_LAYERS 9
 
 int get_cpu_count() {
   return std::thread::hardware_concurrency();
@@ -15,14 +15,14 @@ size_t build_test_graph(BuildGraph &build_graph, int level, size_t& task_count) 
     deps.emplace_back(build_test_graph(build_graph, level - 1, task_count));
   }
 
-  size_t t = build_graph.add_task([]{ std::cout << '.'; sleep(1); }, deps);
+  size_t t = build_graph.add_task([]{}, deps);
   task_count++;
 
-  std::cout << "Task #" << t << " depends on: ";
-  for (size_t dependency: deps) {
-    std::cout << dependency << " ";
-  }
-  std::cout << '\n';
+  //std::cout << "Task #" << t << " depends on: ";
+  //for (size_t dependency: deps) {
+  //  std::cout << dependency << " ";
+  //}
+  //std::cout << '\n';
 
   return t;
 }
@@ -49,19 +49,20 @@ int main() {
 
   const size_t layers = TEST_LAYERS;
   size_t task_count = 0;
+
+  std::cout << "Generating test graph... ";
   size_t target_id = build_test_graph(build_graph, layers, task_count);
   //size_t target_id = build_bad_graph(build_graph, layers, task_count);
-
-  std::cout << "Task count: " << task_count << '\n';
+  std::cout << "Done: " << task_count << ".\n";
 
   auto start = std::chrono::system_clock::now();
   builder.execute(build_graph, target_id);
   auto finish = std::chrono::system_clock::now();
 
-  auto start_seconds = std::chrono::time_point_cast<std::chrono::seconds>(start);
-  auto finish_seconds = std::chrono::time_point_cast<std::chrono::seconds>(finish);
-  auto time_seconds = finish_seconds - start_seconds;
+  auto tstart = std::chrono::time_point_cast<std::chrono::milliseconds>(start);
+  auto tfinish = std::chrono::time_point_cast<std::chrono::milliseconds>(finish);
+  auto time = tfinish - tstart;
 
-  std::cout << "\nOverall time: " << time_seconds.count() << " seconds.\n";
+  std::cout << "\nTime: " << time.count() << " milliseconds.\n";
 }
 

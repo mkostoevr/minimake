@@ -364,8 +364,13 @@ public:
   explicit Builder(size_t num_threads): m_pipeline(num_threads) {}
 
   void execute(const BuildGraph& build_graph, size_t task_id) {
+    std::cout << "Cyclic dependency check... ";
     check_no_cyclic_deps(build_graph, task_id);
+    std::cout << "Done.\n";
+
+    std::cout << "Build... ";
     build(build_graph, task_id);
+    std::cout << "Done.\n";
   }
 
 private:
