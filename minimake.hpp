@@ -5,8 +5,11 @@
 #include <iostream>
 #include <cassert>
 #include <thread>
+#include <atomic>
 #include <queue>
 #include <mutex>
+
+using namespace std::chrono_literals;
 
 class TaskSet {
 public:
@@ -49,7 +52,7 @@ public:
     /*
      * Check whether the task exists in the set.
      */
-    bool contains(size_t task_id) {
+    bool contains(size_t task_id) const noexcept {
         assert(task_id < m_capacity);
 
         return m_bitset[task_id];
@@ -200,72 +203,43 @@ private:
       pending_finish_request = true;
       new_task_or_finish_request.notify_all();
     }
+
+    TaskSet finished_tasks;
+
+    WorkerState(size_t max_task_count): finished_tasks(max_task_count) {}
+
+    /*
+     * UNSAFE BLOCK: Only do this if you know what you're doing!
+     *
+     * The finished_tasks field is modified and read without any locking.
+     *
+     * Since:
+     * 1. The task set is only modified by one and only one thread.
+     * 2. The bit can either be 0 or 1 and we are OK if we got outdated value.
+     * 3. The task bit set is not going to be reallocated (so we can't read
+     *    from wrong address once another thread have wrote to the set and so
+     *    caused reallocation).
+     * 4. The CPU we are targeting is OK with simultaneous attempt to read and
+     *    write the same byte.
+     *
+     * Nothing dangerous is going to happen in our conditions. But I have no
+     * idea what's gonna happen on any other architecture, so again:
+     *
+     * DON'T DO THIS UNLESS YOU KNOW WHAT YOU'RE DOING!
+     */
+
+    void mark_task_as_finished(size_t task_id) {
+      finished_tasks.insert(task_id);
+    }
+
+    bool task_is_finished(size_t task_id) const noexcept {
+      return finished_tasks.contains(task_id);
+    }
   };
 
   struct WorkerSharedState {
-    std::mutex finished_tasks_modification;
     std::condition_variable task_finished;
-    TaskSet finished_tasks;
-
-    explicit WorkerSharedState(size_t max_task_count)
-        : finished_tasks(max_task_count) {}
-
-    void mark_task_as_finished(size_t task_id) {
-      std::lock_guard lock(finished_tasks_modification);
-      finished_tasks.insert(task_id);
-      task_finished.notify_one();
-    }
-
-    bool task_is_finished(size_t task_id) {
-      std::lock_guard lock(finished_tasks_modification);
-      return finished_tasks.contains(task_id);
-    }
-
-    // Wait for "One task is finished since you checked last time, maybe you can
-    // schedule new tasks now" event or "No currently running tasks" state from
-    // the pipeline.
-    //
-    // Builder should save the number of built tasks since we have waited for
-    // a task finish last time in order to prevent unneed waits in situations
-    // like below:
-    // 1. We have entered try_build_task.
-    // 2. We checked that one dependency of one target is not ready yet.
-    // 3. Then builder has finished building the dependency (so the target
-    //    can be built now).
-    // 4. And then we get out of try_build_task and start waiting when the
-    //    builder will end one task, maybe he will end the task we was waiting
-    //    for. The problem being the task we was waiting for is built while
-    //    we was in try_build_task. So now we unusefully wait for one of other
-    //    targets to build. They may be pretty big and it can waste a lot of
-    //    time.
-    //
-    // To prevent such situation the builder not only should be able to inform
-    // once one task is fininshed when we wait for it, but also should inform
-    // if we have overslept some build fininshes since the last time we waited
-    // for the next finished task.
-    int last_checked_finished_tasks_count = 0;
-    bool first_wait_till_can_try_build_again = true;
-
-    void wait_till_can_try_build_again() {
-      std::unique_lock lock(finished_tasks_modification);
-
-      // If it's your first check if you can build anything, you can :)
-      if (first_wait_till_can_try_build_again) {
-        first_wait_till_can_try_build_again = false;
-        return;
-      }
-
-      // Was there any more task finishes since the last check?
-      // If was - you can try to build some target again, maybe
-      // we have built its dependencies already.
-      if (last_checked_finished_tasks_count != finished_tasks.size()) {
-        last_checked_finished_tasks_count = finished_tasks.size();
-        return;
-      }
-
-      // If there was no new task finished yet, let's wait for it.
-      task_finished.wait(lock);
-    }
+    std::atomic<size_t> task_finishes;
   };
 
 private:
@@ -277,15 +251,17 @@ private:
         return;
       }
       task.task();
-      shared_state.mark_task_as_finished(task.id);
+      state->mark_task_as_finished(task.id);
+      shared_state.task_finishes.fetch_add(1, std::memory_order_relaxed);
+      shared_state.task_finished.notify_one();
     }
   }
 
 public:
-  Pipeline(size_t num_threads, size_t max_task_count)
-    : m_workers_shared_state(max_task_count) {
+  Pipeline(size_t num_threads, size_t max_task_count) {
     for (size_t i = 0; i < num_threads; i++) {
-      auto worker_state = m_worker_states.emplace_back(new WorkerState());
+      auto worker_state = m_worker_states.emplace_back(
+          new WorkerState(max_task_count));
       m_workers.emplace_back(worker_thread,
                              worker_state,
                              std::ref(m_workers_shared_state));
@@ -302,12 +278,46 @@ public:
     }
   }
 
-  bool task_is_finished(size_t task_id) {
-    return m_workers_shared_state.task_is_finished(task_id);
+  bool task_is_finished(size_t task_id) const noexcept {
+    for (const std::shared_ptr<WorkerState>& worker_state: m_worker_states) {
+      if (worker_state->task_is_finished(task_id)) {
+        return true;
+      }
+    }
+    return false;
   }
 
+  std::mutex unuseful_lock;
+  int last_checked_finished_tasks_count = 0;
+  bool first_wait_till_can_try_build_again = true;
+
   void wait_till_can_try_build_again() {
-    m_workers_shared_state.wait_till_can_try_build_again();
+    std::unique_lock lock(unuseful_lock);
+
+    // If it's your first check if you can build anything, you can :)
+    if (first_wait_till_can_try_build_again) {
+      first_wait_till_can_try_build_again = false;
+      return;
+    }
+
+    // Was there any more task finishes since the last check?
+    // If was - you can try to build some target again, maybe
+    // we have built its dependencies already.
+    size_t finished_task_count = m_workers_shared_state.task_finishes.load(
+        std::memory_order_relaxed);
+    if (last_checked_finished_tasks_count != finished_task_count) {
+      last_checked_finished_tasks_count = finished_task_count;
+      return;
+    }
+
+    // If there was no new task finished yet, let's wait for it.
+    // It could so happen that everyone who could raise the condvar have
+    // already done it, and so we are waiting the event never going t
+    // happen. For such case the wait is timed.
+    //
+    // On next iteration we gonna see than some tasks are finished while
+    // we was between the wait_for and the finished_task_count fetch above.
+    m_workers_shared_state.task_finished.wait_for(lock, 100ms);
   }
 
   void finish() {
