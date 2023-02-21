@@ -396,13 +396,14 @@ private:
                       size_t task_id,
                       TaskSet& waiting_tasks,
                       TaskSet& scheduled_tasks) {
-    // If our task is done - return true.
-    if (m_pipeline.task_is_finished(task_id)) {
-      return true;
-    }
-
-    // If the task is shcheduled already, skip it. It's going to be built later.
+    // If the task was shcheduled already then it's either done or to be done.
     if (scheduled_tasks.contains(task_id)) {
+      // If our task is done - return true.
+      if (m_pipeline.task_is_finished(task_id)) {
+        return true;
+      }
+
+      // Skip it othervice. It's going to be built later.
       return false;
     }
 
