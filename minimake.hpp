@@ -5,6 +5,7 @@
 #include <iostream>
 #include <cassert>
 #include <thread>
+#include <atomic>
 #include <queue>
 #include <mutex>
 
@@ -79,9 +80,19 @@ private:
 struct Target {
   size_t id;
   std::function<void()> task;
+
+  operator bool() {
+    assert((id == SIZE_MAX && task == nullptr)
+        || (id != SIZE_MAX && task != nullptr));
+    return id != SIZE_MAX;
+  }
 };
 
+class ReversedBuildGraph;
+
 class ThreadUnsafeBuildGraph {
+  friend ReversedBuildGraph;
+
 private:
   std::vector<std::function<void()>> m_tasks;
   std::vector<std::vector<size_t>> m_task_deps;
@@ -110,6 +121,8 @@ public:
 };
 
 class BuildGraph: ThreadUnsafeBuildGraph {
+  friend ReversedBuildGraph;
+
 private:
   // Now if you start reading this graph from many threads we have this mutex
   // constantly changing. It contains a bunch of variables and these changes
@@ -149,122 +162,164 @@ public:
   }
 };
 
+class ReversedBuildGraph {
+public:
+  ReversedBuildGraph(const BuildGraph& build_graph, size_t task_id)
+    : m_tasks(build_graph.m_tasks)
+    , m_task_dependers(build_graph.size())
+    , m_task_dependencies_remained(build_graph.size())
+    , m_independent_tasks_i(0) {
+    // Reserve space so the vector won't reallocate on new task addition.
+    // TODO: Use a bufset instead of the reallocatable vector.
+    m_independent_tasks.reserve(build_graph.size());
+    fill_data(build_graph, task_id);
+  }
+
+  std::function<void()> get_task(size_t task_id) const {
+    assert(task_id != SIZE_MAX);
+    assert(m_tasks[task_id] != nullptr);
+    return m_tasks[task_id];
+  }
+
+  Target get_next_target(Target last_target) {
+    // TODO: Use something non-allocating here?
+    std::vector<size_t> got_ready = finish_target(last_target.id);
+    if (got_ready.size() != 0) {
+      // TODO: Put second and next tasks into the m_independent_tasks.
+      assert(got_ready.size() == 1);
+      return { got_ready[0], get_task(got_ready[0]) };
+    }
+    // If we can't continue the tree now, let's look for the next one.
+    if (size_t task_id = aquire_next_independent_task(); task_id != SIZE_MAX) {
+      return { task_id, get_task(task_id) };
+    }
+    // No tasks to execute.
+    return { SIZE_MAX, nullptr };
+  }
+
+private:
+  size_t aquire_next_independent_task() {
+    while (m_independent_tasks_i < m_independent_tasks.size()) {
+      size_t expected = m_independent_tasks_i;
+      bool ok = std::atomic_compare_exchange_weak(
+        &m_independent_tasks_i,
+        &expected,
+        expected + 1);
+      if (ok) {
+        return m_independent_tasks[expected];
+      }
+    }
+    // TODO: Wait for a new independent task.
+    return SIZE_MAX;
+  }
+
+  std::vector<size_t> finish_target(size_t last_task_id) {
+    // The dependers that became ready after the task is finished.
+    if (last_task_id == SIZE_MAX) {
+      // No task is finished, so no depender got ready.
+      return {};
+    }
+    std::vector<size_t> result;
+    for (size_t depender: m_task_dependers[last_task_id]) {
+      if (aquire_depender(depender)) {
+        result.push_back(depender);
+      }
+    }
+    return result;
+  }
+
+  // Decrement the task's remained dependency count.
+  // @param   task_id The depender ID.
+  // @returns true    If the dependency count was zerified
+  //                  (so now the task can be executed).
+  //          false   Othervice.
+  bool aquire_depender(size_t task_id) {
+    std::atomic<size_t>& dep_n = m_task_dependencies_remained[task_id];
+    size_t expected = SIZE_MAX;
+    for (;;) {
+      expected = dep_n;
+      if (std::atomic_compare_exchange_weak(&dep_n, &expected, expected - 1)) {
+        break;
+      }
+    }
+    if (expected == 1) {
+      // We have satisfied the last dependency of the target.
+      return true;
+    }
+    return false;
+  }
+
+  void fill_data(const BuildGraph& build_graph, size_t task_id) noexcept {
+    const std::vector<size_t>& deps = build_graph.get_task_deps(task_id);
+
+    if (deps.size() == 0) {
+      // This task is ready to be put in the queue.
+      m_independent_tasks.push_back(task_id);
+    } else {
+      // This task is ready when all of its dpendencies are ready.
+      m_task_dependencies_remained[task_id] = deps.size();
+
+      for (size_t dep_id: deps) {
+        // This task is a depender of its dependency,
+        // because it depends in its dependency.
+        m_task_dependers[dep_id].push_back(task_id);
+
+        // Go analise our dependencies.
+        fill_data(build_graph, dep_id);
+      }
+    }
+  }
+
+private:
+  // Overall amount of tasks to execute.
+  std::vector<std::function<void()>> m_tasks;
+  std::vector<std::vector<size_t>> m_task_dependers;
+  // TODO: Measure with uint32_t.
+  std::vector<std::atomic<size_t>> m_task_dependencies_remained;
+  std::vector<size_t> m_independent_tasks;
+  std::atomic<size_t> m_independent_tasks_i;
+};
+
 // I have never implemented thread pools myself so it's probably suboptimal
 // and/or misses something.
 //
 // But I've done the best I could :)
 class Pipeline {
 private:
-  // TODO: Align to cache line size to prevent false sharing.
-  struct WorkerState {
-    std::mutex task_queue_modification;
-    std::condition_variable new_task_or_finish_request;
-    std::queue<Target> task_queue;
+  struct WorkerSharedState {
+    ReversedBuildGraph &m_rbg;
 
-    bool pending_finish_request = false;
+    explicit WorkerSharedState(size_t max_task_count, ReversedBuildGraph &rbg)
+      : m_rbg { rbg }
+      {}
 
-    std::pair<Target, bool> get_next_task() {
-      std::unique_lock lock(task_queue_modification);
-
-      for (;;) {
-        if (task_queue.size() > 0) {
-          Target task = task_queue.front();
-          task_queue.pop();
-          // Return to the worker the task to execute.
-          return std::make_pair(task, false);
-        }
-
-        if (pending_finish_request) {
-          // Return to the worker a finish request.
-          return std::make_pair((Target){}, true);
-        }
-
-        new_task_or_finish_request.wait(lock);
-      }
-    }
-
-    void add_task(size_t id, std::function<void()> task) {
-      std::lock_guard lock(task_queue_modification);
-
-      assert(!pending_finish_request);
-      if (pending_finish_request) {
-        throw "Internal error: Attempt to add a task to finished pipeline.\n";
-      }
-
-      task_queue.push({ id, task });
-      new_task_or_finish_request.notify_one();
-    }
-
-    void finish() {
-      std::lock_guard lock(task_queue_modification);
-      pending_finish_request = true;
-      new_task_or_finish_request.notify_all();
+    Target get_next_target(Target last_target) {
+      return m_rbg.get_next_target(last_target);
     }
   };
 
-  struct WorkerSharedState {
-    std::mutex finished_tasks_modification;
-    std::condition_variable task_finished;
-    TaskSet finished_tasks;
+  // TODO: Align to cache line size to prevent false sharing.
+  struct WorkerState {
+    WorkerSharedState &m_shared_state;
+    Target m_last_target;
 
-    explicit WorkerSharedState(size_t max_task_count)
-        : finished_tasks(max_task_count) {}
+    WorkerState(WorkerSharedState &shared_state)
+      : m_shared_state { shared_state }
+      , m_last_target { SIZE_MAX }
+      {}
 
-    void mark_task_as_finished(size_t task_id) {
-      std::lock_guard lock(finished_tasks_modification);
-      finished_tasks.insert(task_id);
-      task_finished.notify_one();
-    }
+    std::pair<Target, bool> get_next_task() {
+      for (;;) {
+        if (
+          Target target = m_shared_state.get_next_target(m_last_target);
+          target
+        ) {
+          m_last_target = target;
+          return std::make_pair(target, false);
+        }
 
-    bool task_is_finished(size_t task_id) {
-      std::lock_guard lock(finished_tasks_modification);
-      return finished_tasks.contains(task_id);
-    }
-
-    // Wait for "One task is finished since you checked last time, maybe you can
-    // schedule new tasks now" event or "No currently running tasks" state from
-    // the pipeline.
-    //
-    // Builder should save the number of built tasks since we have waited for
-    // a task finish last time in order to prevent unneed waits in situations
-    // like below:
-    // 1. We have entered try_build_task.
-    // 2. We checked that one dependency of one target is not ready yet.
-    // 3. Then builder has finished building the dependency (so the target
-    //    can be built now).
-    // 4. And then we get out of try_build_task and start waiting when the
-    //    builder will end one task, maybe he will end the task we was waiting
-    //    for. The problem being the task we was waiting for is built while
-    //    we was in try_build_task. So now we unusefully wait for one of other
-    //    targets to build. They may be pretty big and it can waste a lot of
-    //    time.
-    //
-    // To prevent such situation the builder not only should be able to inform
-    // once one task is fininshed when we wait for it, but also should inform
-    // if we have overslept some build fininshes since the last time we waited
-    // for the next finished task.
-    int last_checked_finished_tasks_count = 0;
-    bool first_wait_till_can_try_build_again = true;
-
-    void wait_till_can_try_build_again() {
-      std::unique_lock lock(finished_tasks_modification);
-
-      // If it's your first check if you can build anything, you can :)
-      if (first_wait_till_can_try_build_again) {
-        first_wait_till_can_try_build_again = false;
-        return;
+        return std::make_pair((Target){}, true);
       }
-
-      // Was there any more task finishes since the last check?
-      // If was - you can try to build some target again, maybe
-      // we have built its dependencies already.
-      if (last_checked_finished_tasks_count != finished_tasks.size()) {
-        last_checked_finished_tasks_count = finished_tasks.size();
-        return;
-      }
-
-      // If there was no new task finished yet, let's wait for it.
-      task_finished.wait(lock);
     }
   };
 
@@ -277,46 +332,24 @@ private:
         return;
       }
       task.task();
-      shared_state.mark_task_as_finished(task.id);
     }
   }
 
 public:
-  Pipeline(size_t num_threads, size_t max_task_count)
-    : m_workers_shared_state(max_task_count) {
+  Pipeline(size_t num_threads, size_t max_task_count, ReversedBuildGraph &rbg)
+    : m_workers_shared_state(max_task_count, rbg)
+    {
     for (size_t i = 0; i < num_threads; i++) {
-      auto worker_state = m_worker_states.emplace_back(new WorkerState());
+      auto worker_state = m_worker_states.emplace_back(
+        new WorkerState(m_workers_shared_state)
+      );
       m_workers.emplace_back(worker_thread,
                              worker_state,
                              std::ref(m_workers_shared_state));
     }
   }
 
-  void schedule_task(size_t task_id, std::function<void()> task) {
-    // TODO: Scheduling.
-    assert(m_next_worker < m_worker_states.size());
-
-    m_worker_states[m_next_worker++]->add_task(task_id, task);
-    if (m_next_worker == m_worker_states.size()) {
-      m_next_worker = 0;
-    }
-  }
-
-  bool task_is_finished(size_t task_id) {
-    return m_workers_shared_state.task_is_finished(task_id);
-  }
-
-  void wait_till_can_try_build_again() {
-    m_workers_shared_state.wait_till_can_try_build_again();
-  }
-
-  void finish() {
-    // Signal to workers it's time to stop.
-    for (std::shared_ptr<WorkerState> worker_state: m_worker_states) {
-      worker_state->finish();
-    }
-
-    // Wait for workers to stop.
+  void wait() {
     for (std::thread& worker: m_workers) {
       worker.join();
     }
@@ -387,86 +420,37 @@ private:
                           analised_tasks);
   }
 
-  void schedule_task(size_t task_id, std::function<void()> task) {
-    m_pipeline.schedule_task(task_id, task);
-  }
+  void build(ReversedBuildGraph& rbg, size_t task_id) {
+    // TODO: Get rid of the m_build_graph.size().
+    Pipeline pipeline { m_num_threads, m_build_graph.size(), rbg };
 
-  // Returns true if the task is finished already, false othervice.
-  bool try_build_task(const BuildGraph& build_graph,
-                      size_t task_id,
-                      TaskSet& waiting_tasks,
-                      TaskSet& scheduled_tasks) {
-    // If the task was shcheduled already then it's either done or to be done.
-    if (scheduled_tasks.contains(task_id)) {
-      // If our task is done - return true.
-      if (m_pipeline.task_is_finished(task_id)) {
-        return true;
-      }
-
-      // Skip it othervice. It's going to be built later.
-      return false;
-    }
-
-    // If our task is in waiting_tasks then we already analised it in one of
-    // other branches. No need to check our dependencies again, we're
-    // still waiting.
-    if (waiting_tasks.contains(task_id)) {
-      return false;
-    }
-
-    // Try to build all our dependencies.
-    const std::vector<size_t>& deps = build_graph.get_task_deps(task_id);
-    bool all_dependencies_are_built = true;
-    for (size_t dependency: deps) {
-      all_dependencies_are_built &= try_build_task(build_graph,
-                                                   dependency,
-                                                   waiting_tasks,
-                                                   scheduled_tasks);
-    }
-
-    if (all_dependencies_are_built) {
-      // The task is ready to be built, let's schedule it.
-      schedule_task(task_id, build_graph.get_task(task_id));
-      scheduled_tasks.insert(task_id);
-    } else {
-      // Need to wait until our dependencies are built.
-      waiting_tasks.insert(task_id);
-    }
-    return false;
-  }
-
-  void build(const BuildGraph& build_graph, size_t task_id) {
-    TaskSet waiting_tasks(build_graph.size());
-    TaskSet scheduled_tasks(build_graph.size());
-
-    do {
-      m_pipeline.wait_till_can_try_build_again();
-      waiting_tasks.clear();
-      try_build_task(build_graph,
-                     task_id,
-                     waiting_tasks,
-                     scheduled_tasks);
-    } while (waiting_tasks.size() > 0);
-    m_pipeline.finish();
+    // TODO: Let it just locklessly take tasks from the end himself.
+    // Like run_on_rbg().
+    pipeline.wait();
   }
 
 public:
   explicit Builder(size_t num_threads, const BuildGraph& build_graph)
-      : m_pipeline(num_threads, build_graph.size())
-      , m_build_graph(build_graph) {}
+    : m_num_threads { num_threads }
+    , m_build_graph { build_graph }
+    {}
 
   void execute(size_t task_id) {
     std::cout << "Cyclic dependency check... ";
     check_no_cyclic_deps(m_build_graph, task_id);
     std::cout << "Done.\n";
 
+    std::cout << "Reversing graph... ";
+    ReversedBuildGraph reversed_build_graph(m_build_graph, task_id);
+    std::cout << "Done.\n";
+
     std::cout << "Build... ";
-    build(m_build_graph, task_id);
+    build(reversed_build_graph, task_id);
     std::cout << "Done.\n";
   }
 
 private:
-  Pipeline m_pipeline;
+  const size_t m_num_threads;
   const BuildGraph& m_build_graph;
 };
 

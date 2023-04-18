@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <chrono>
 
-#define TEST_LAYERS 9
+#define TEST_LAYERS 10
 
 int get_cpu_count() {
   return std::thread::hardware_concurrency();
